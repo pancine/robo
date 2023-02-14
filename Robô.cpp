@@ -390,33 +390,9 @@ void drawConeD(float diameter, float lenght) {
 	gluCylinder(quadCylinder, diameter, 0, lenght, 40.0, lenght * 30.0);
 }
 
-void drawDisk(float diameterInner, float diameterOuter) {
+void drawDisk(float diameterInner, float diameterOuter, GLuint texture) {
 	if (textureOn) {
-		glBindTexture(GL_TEXTURE_2D, _disco);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		gluQuadricTexture(quadCylinder, 1);
-	}
-	else
-		gluQuadricTexture(quadCylinder, 0);
-	gluDisk(quadCylinder, diameterInner, diameterOuter, 40.0, 30.0);
-}
-
-void drawDiskF(float diameterInner, float diameterOuter) {
-	if (textureOn) {
-		glBindTexture(GL_TEXTURE_2D, _rosto);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		gluQuadricTexture(quadCylinder, 1);
-	}
-	else
-		gluQuadricTexture(quadCylinder, 0);
-	gluDisk(quadCylinder, diameterInner, diameterOuter, 40.0, 30.0);
-}
-
-void drawDiskB(float diameterInner, float diameterOuter) {
-	if (textureOn) {
-		glBindTexture(GL_TEXTURE_2D, _boca);
+		glBindTexture(GL_TEXTURE_2D, texture);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		gluQuadricTexture(quadCylinder, 1);
@@ -486,10 +462,10 @@ void drawScene(void) {
 	glRotatef(LkneeArt, 0.0f, 1.0f, 0.0f);
 	drawCylinder(1.5 * diameterCylinder, sizeKnee, _jean);
 	glTranslatef(0.0f, 0.0f, (sizeKnee + diameterSphere / 5));
-	drawDisk(0, diameterBase);
+	drawDisk(0, diameterBase, _disco);
 	drawCylinder(diameterBase, heightBase, _disco);
 	glTranslatef(0.0f, 0.0f, heightBase);
-	drawDisk(0, diameterBase);
+	drawDisk(0, diameterBase, _disco);
 
 	glPopMatrix();
 	glPushMatrix();
@@ -511,37 +487,34 @@ void drawScene(void) {
 	glRotatef(RkneeArt, 0.0f, 1.0f, 0.0f);
 	drawCylinder(1.5 * diameterCylinder, sizeKnee, _jean);
 	glTranslatef(0.0f, 0.0f, (sizeKnee + diameterSphere / 5));
-	drawDisk(0, diameterBase);
+	drawDisk(0, diameterBase, _disco);
 	drawCylinder(diameterBase, heightBase, _disco);
 	glTranslatef(0.0f, 0.0f, heightBase);
-	drawDisk(0, diameterBase);
+	drawDisk(0, diameterBase, _disco);
 
 	//Tronco
 	glPopMatrix();
 	glPushMatrix();		//Parte de baixo do tronco
 	glTranslatef(0.0f, centroY, centroZ + sizeLeg + sizeKnee + heightBase + diameterSphere / 2);
-	drawDisk(0, diameterTorso);
+	drawDisk(0, diameterTorso, _disco);
 	glRotatef(90, 0.0f, 0.0f, 1.0f);
 	drawCylinder(diameterTorso, torsoHeight, _torso);
 	glRotatef(-90, 0.0f, 0.0f, 1.0f);
 	glTranslatef(0.0f, 0.0f, torsoHeight);
-	drawDisk(diameterCylinder, diameterTorso);
+	drawDisk(diameterCylinder, diameterTorso, _disco);
 
 	//Pescoço e cabeça
 	glPushMatrix();		//Base do pescoço
 	drawCylinder(diameterKneck, heightKneck, _rosto);
 	glTranslatef(0.0f, 0.0f, diameterKneck);
-	//drawDisk(diameterCylinder, diameterKneck);
 	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
 	glRotatef(headArt, 1.0f, 0.0f, 0.0f);
 	glTranslatef(-diameterHead, 0.0f, 0.0f);
 	glTranslatef(0.0, 0.0f, -heightHead / 2);
-	drawDisk(0, diameterHead);
+	drawDisk(0, diameterHead, _disco);
 	drawCylinder(diameterHead, heightHead, _disco);
 	glTranslatef(0.0f, 0.0f, heightHead);
-	drawDiskF(0, diameterHead);
-
-	//glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+	drawDisk(0, diameterHead, _rosto);
 
 	//Olhos
 	glPushMatrix();		//centro do rosto
@@ -562,13 +535,12 @@ void drawScene(void) {
 	glPopMatrix();
 	glTranslatef(diameterHead / 2, diameterMouth / 1.5, 0.0f);
 	glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
-	//(1.0f, 0.0f, 0.0f);	//	//	//	//
 	glTranslatef(-diameterMouth / 1.5, 0.0f, -1.4 * diameterMouth);
 	glPushMatrix();
 	glTranslatef(0.0f, 0.0f, heightMouth / 1.5);
-	drawDiskB(0, diameterMouth);
+	drawDisk(0, diameterMouth, _boca);
 	glTranslatef(0.0f, 0.0f, -heightMouth);
-	drawDisk(0, diameterMouth);
+	drawDisk(0, diameterMouth, _disco);
 	glPopMatrix();
 	glTranslatef(0.0f, 0.0f, -heightMouth / 3);
 	glRotatef(40.0f, 0.0f, 0.0f, 1.0f);
