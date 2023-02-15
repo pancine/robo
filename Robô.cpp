@@ -9,26 +9,18 @@
 
 using namespace std;
 
-const char* fFlamengo = "./flamengo.bmp";
+const char* fAmarelo = "./amarelo.bmp";
+const char* fMarrom = "./marrom.bmp";
 const char* fMetal = "./metal.bmp";
-const char* fEsfera = "./esfera.bmp";
-const char* fboca = "./boca.bmp";
 const char* fOlho = "./olho.bmp";
-const char* fRosto = "./rosto.bmp";
-const char* fBraco = "./braco.bmp";
-const char* fDedo = "./dedo.bmp";
-const char* fJean = "./jeans.bmp";
+const char* fVerde = "./verde.bmp";
 
-GLuint _jean;
-GLuint _dedo;
+GLuint _amarelo;
+GLuint _marrom;
 GLuint _metal;
-GLuint _braco;
-GLuint _rosto;
 GLuint _olho;
-GLuint _torso;
-GLuint _disco;
-GLuint _esfera;
-GLuint _boca;
+GLuint _verde;
+
 GLUquadric* quadSphere;
 GLUquadric* quadCylinder;
 
@@ -143,15 +135,11 @@ GLuint loadTexture(const char* filename) {
 void initRendering(void) {
 	quadSphere = gluNewQuadric();
 	quadCylinder = gluNewQuadric();
-	_torso = loadTexture(fFlamengo);
-	_disco = loadTexture(fMetal);
-	_esfera = loadTexture(fEsfera);
-	_boca = loadTexture(fboca);
+	_amarelo = loadTexture(fAmarelo);
+	_marrom = loadTexture(fMarrom);
+	_metal = loadTexture(fMetal);
 	_olho = loadTexture(fOlho);
-	_rosto = loadTexture(fRosto);
-	_braco = loadTexture(fBraco);
-	_dedo = loadTexture(fDedo);
-	_jean = loadTexture(fJean);
+	_verde = loadTexture(fVerde);
 }
 
 void handleKeypress(unsigned char key, int x, int y) {
@@ -412,23 +400,23 @@ void drawSphere(float diameter, GLuint texture) {
 
 void drawPerna(Perna perna) {
 	glTranslatef(0.0f, centroY + perna.DistZ, centroZ + heightBase + sizeKnee + (sphereDiameter / 2.5f) + sizeLeg);
-	drawSphere(1.5f * sphereDiameter, _esfera);
+	drawSphere(1.5f * sphereDiameter, _amarelo);
 
 	glRotatef(perna.LegArt, 0.0f, -1.0f, 0.0f);
-	drawCylinder(1.5f * diameterCylinder, sizeLeg, _jean);
+	drawCylinder(1.5f * diameterCylinder, sizeLeg, _marrom);
 
 	glTranslatef(0.0f, 0.0f, sizeLeg);
 	glTranslatef(0.0f, 0.0f, (sphereDiameter / 5));
-	drawSphere(1.5f * sphereDiameter, _esfera);
+	drawSphere(1.5f * sphereDiameter, _amarelo);
 
 	glRotatef(perna.KneeArt, 0.0f, 1.0f, 0.0f);
-	drawCylinder(1.5f * diameterCylinder, sizeKnee, _jean);
+	drawCylinder(1.5f * diameterCylinder, sizeKnee, _marrom);
 
 	glTranslatef(0.0f, 0.0f, (sizeKnee + sphereDiameter / 5));
-	drawDisk(0, diameterBase, _disco);
-	drawCylinder(diameterBase, heightBase, _disco);
+	drawDisk(0, diameterBase, _metal);
+	drawCylinder(diameterBase, heightBase, _metal);
 	glTranslatef(0.0f, 0.0f, heightBase);
-	drawDisk(0, diameterBase, _disco);
+	drawDisk(0, diameterBase, _metal);
 
 	glPopMatrix();
 	glPushMatrix();
@@ -437,24 +425,24 @@ void drawPerna(Perna perna) {
 void drawBraco(Braco braco) {
 	glColor3f(1.0f, 1.0f, 1.0f);
 	glTranslatef(0.0f, braco.DiameterTorso, -torsoHeight / 3);
-	drawSphere(2 * sphereDiameter, _esfera);
+	drawSphere(2 * sphereDiameter, _amarelo);
 
 	glRotatef(braco.AngleArmZ, 1.0f, 0.0f, 0.0f);
 	glRotatef(braco.AngleArmY, 0.0f, 1.0f, 0.0f);
 
-	drawCylinder(diameterCylinder, armSize, _braco);
+	drawCylinder(diameterCylinder, armSize, _verde);
 
 	glTranslatef(0.0f, 0.0f, armSize + sphereDiameter / 5);
 	glRotatef(braco.AngleForearm, 0.0f, 1.0f, 0.0f);
 
-	drawSphere(sphereDiameter, _esfera);
+	drawSphere(sphereDiameter, _amarelo);
 	glTranslatef(0.0f, 0.0f, sphereDiameter / 5);
-	drawCylinder(diameterCylinder, sizeForearm, _disco);
+	drawCylinder(diameterCylinder, sizeForearm, _metal);
 
 	glTranslatef(0.0f, 0.0f, sizeForearm + sphereDiameter / 5);
 	glRotatef(braco.AngleClampZ, 0.0f, 0.0f, 1.0f);
 
-	drawSphere(sphereDiameter, _esfera);
+	drawSphere(sphereDiameter, _amarelo);
 	glTranslatef(0.0f, 0.0f, sphereDiameter / 2);
 	glRotatef(braco.HandSpin, 0.0f, 0.0f, 1.0f);
 
@@ -462,40 +450,40 @@ void drawBraco(Braco braco) {
 
 	glRotatef(braco.AngleClampY + 60, 0.0f, 1.0f, 0.0f);
 
-	drawCylinder(diameterCylinder / 3, sizeClampPart, _dedo);
+	drawCylinder(diameterCylinder / 3, sizeClampPart, _amarelo);
 	glTranslatef(0.0f, 0.0f, sizeClampPart + sphereDiameter / 15);
-	drawSphere(sphereDiameter / 3, _esfera);
+	drawSphere(sphereDiameter / 3, _amarelo);
 
 	glTranslatef(0.0f, 0.0f, sphereDiameter / 15);
 	glRotatef(-60, 0.0f, 1.0f, 0.0f);
 
-	drawCylinder(diameterCylinder / 3, sizeClampPart, _dedo);
+	drawCylinder(diameterCylinder / 3, sizeClampPart, _amarelo);
 	glTranslatef(0.0f, 0.0f, sizeClampPart + sphereDiameter / 15);
-	drawSphere(sphereDiameter / 3, _esfera);
+	drawSphere(sphereDiameter / 3, _amarelo);
 
 	glTranslatef(0.0f, 0.0f, sphereDiameter / 15);
 	glRotatef(-60, 0.0f, 1.0f, 0.0f);
-	drawCone(diameterCylinder / 3, sizeClampPart, _dedo);
+	drawCone(diameterCylinder / 3, sizeClampPart, _amarelo);
 
 	glPopMatrix();
 	glPushMatrix();
 
 	glRotatef(-braco.AngleClampY - 60, 0.0f, 1.0f, 0.0f);
 
-	drawCylinder(diameterCylinder / 3, sizeClampPart, _dedo);
+	drawCylinder(diameterCylinder / 3, sizeClampPart, _amarelo);
 	glTranslatef(0.0f, 0.0f, sizeClampPart + sphereDiameter / 15);
-	drawSphere(sphereDiameter / 3, _esfera);
+	drawSphere(sphereDiameter / 3, _amarelo);
 
 	glTranslatef(0.0f, 0.0f, sphereDiameter / 15);
 	glRotatef(60, 0.0f, 1.0f, 0.0f);
 
-	drawCylinder(diameterCylinder / 3, sizeClampPart, _dedo);
+	drawCylinder(diameterCylinder / 3, sizeClampPart, _amarelo);
 	glTranslatef(0.0f, 0.0f, sizeClampPart + sphereDiameter / 15);
-	drawSphere(sphereDiameter / 3, _esfera);
+	drawSphere(sphereDiameter / 3, _amarelo);
 
 	glTranslatef(0.0f, 0.0f, sphereDiameter / 15);
 	glRotatef(60, 0.0f, 1.0f, 0.0f);
-	drawCone(diameterCylinder / 3, sizeClampPart, _dedo);
+	drawCone(diameterCylinder / 3, sizeClampPart, _amarelo);
 
 	glPopMatrix();
 	glPopMatrix();
@@ -537,16 +525,16 @@ void drawScene(void) {
 
 	//Tronco
 	glTranslatef(0.0f, centroY, centroZ + sizeLeg + sizeKnee + heightBase + sphereDiameter / 2);
-	drawDisk(0, diameterTorso, _disco);
+	drawDisk(0, diameterTorso, _metal);
 	glRotatef(90, 0.0f, 0.0f, 1.0f);
-	drawCylinder(diameterTorso, torsoHeight, _torso);
+	drawCylinder(diameterTorso, torsoHeight, _verde);
 	glRotatef(-90, 0.0f, 0.0f, 1.0f);
 	glTranslatef(0.0f, 0.0f, torsoHeight);
-	drawDisk(diameterCylinder, diameterTorso, _disco);
+	drawDisk(diameterCylinder, diameterTorso, _metal);
 
 	glPushMatrix();
 
-	drawSphere(diameterTorso, _disco);
+	drawSphere(diameterTorso, _metal);
 
 	//Olhos
 	glPushMatrix();
@@ -572,7 +560,7 @@ void drawScene(void) {
 	//glTranslatef(0.0f, 0.0f, heightMouth / 1.5);
 	//drawDisk(0, diameterMouth, _boca);
 	//glTranslatef(0.0f, 0.0f, -heightMouth);
-	//drawDisk(0, diameterMouth, _disco);
+	//drawDisk(0, diameterMouth, _metal);
 	//glPopMatrix();
 	//glTranslatef(0.0f, 0.0f, -heightMouth / 3);
 	//glRotatef(40.0f, 0.0f, 0.0f, 1.0f);
