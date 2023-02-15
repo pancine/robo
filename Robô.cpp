@@ -9,12 +9,6 @@
 
 using namespace std;
 
-const char* fAmarelo = "./amarelo.bmp";
-const char* fMarrom = "./marrom.bmp";
-const char* fMetal = "./metal.bmp";
-const char* fOlho = "./olho.bmp";
-const char* fVerde = "./verde.bmp";
-
 GLuint _amarelo;
 GLuint _marrom;
 GLuint _metal;
@@ -24,39 +18,33 @@ GLuint _verde;
 GLUquadric* quadSphere;
 GLUquadric* quadCylinder;
 
-bool textureOn = true;
+bool texturaLigado = true;
 
 float centroZ = 0;
 float centroY = 0;
-float diameterCylinder = 0.3;
-float sphereDiameter = 0.4;
-float armSize = 4.5;
-float sizeKnee = 4.5;
-float sizeForearm = 4.0;
-float sizeLeg = 5.0;
-float sizeHand = 2.0;
-float sizeClampPart = 1.0;
-float diameterBase = 2.0;
-float heightBase = 0.5;
-float torsoHeight = 12;
-float diameterTorso = 5;
-float diameterKneck = 0.8;
-float heightKneck = 2;
-float diameterHead = 2.5;
-float heightHead = 4.5;
-float diameterEye = 0.5;
-float diameterNose = 1;
-float heightNose = 1.5;
-float diameterMouth = 0.4;
-float heightMouth = diameterHead / 1.5;
-float headArt = 0.0f;
 
-float eyeDistance = 100.0;
-float eyeX;
-float eyeY;
-float eyeZ;
-float viewAngleX = 0.0;
-float viewAngleZ = 15.0;
+float diametroCilindro = 0.3f;
+float diametroEsfera = 0.4f;
+float diametroTorso = 5;
+float diametroOlho = 0.5;
+
+float tamanhoBraco = 4.5;
+float tamanhoJoelho = 4.5;
+float tamanhoAntebraco = 4.0;
+float tamanhoPerna = 5.0;
+float tamanhoParteDaGarra = 1.0;
+
+float alturaBase = 0.5;
+float alturaTorso = 12;
+
+float rotacaoCabeca = 0.0f;
+
+float distanciaOlho = 100.0;
+float olhoX;
+float olhoY;
+float olhoZ;
+float anguloVisaoX = 0.0;
+float anguloVisaoZ = 15.0;
 float zoom = 50;
 float horizon = 0;
 float vertic = 0;
@@ -66,25 +54,22 @@ typedef struct Perna {
 	float KneeArt = 0.0f;
 	float DistZ = 4.0f;
 };
-
 Perna pernaEsquerda, pernaDireita;
 
 typedef struct Braco {
-	float AngleArmY = 0.0f;
-	float AngleArmZ;
-	float AngleClampY = 0.0f;
-	float AngleClampZ = 0.0f;
-	float AngleForearm = 0.0;
-	float HandSpin = 90.0f;
+	float AnguloBracoY = 0.0f;
+	float AnguloBracoZ;
+	float AnguloGarraY = 0.0f;
+	float AnguloGarraZ = 0.0f;
+	float AnguloAntebraco = 0.0;
+	float GiroDaMao = 90.0f;
 	float DiameterTorso;
 };
-
 Braco bracoEsquerdo, bracoDireito;
 
-const GLfloat lightposition[4] = { 0.0f, 30.0f, 0.0f, 0.0f };
-const GLfloat luzAmbiente[4] = { 0.3, 0.3, 0.3, 0.0 };
+GLfloat posicaoLuz[4] = { 0.0f, 30.0f, 0.0f, 0.0f };
+GLfloat luzAmbiente[4] = { 0.3f, 0.3f, 0.3f, 0.0f };
 
-//defines light source (LIGHT0)
 void initLighting(void)
 {
 	glEnable(GL_DEPTH_TEST);
@@ -94,222 +79,164 @@ void initLighting(void)
 	glEnable(GL_LIGHT0);
 	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 
-	// Especifica que a cor de fundo da janela será preta
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-	// Habilita o modelo de colorização de Gouraud
 	glShadeModel(GL_SMOOTH);
 
-	// Ativa o uso da luz ambiente 
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, luzAmbiente);
 
-	// Define os parâmetros da luz de número 0
 	glLightfv(GL_LIGHT0, GL_AMBIENT, luzAmbiente);
-	glLightfv(GL_LIGHT0, GL_POSITION, lightposition);
+	glLightfv(GL_LIGHT0, GL_POSITION, posicaoLuz);
 
-	// Materials will follow current color
 	glEnable(GL_COLOR_MATERIAL);
 }
 
-// makes the image into a texture, and returns the id of the texture
-GLuint loadTexture(const char* filename) {
-	GLuint textureId;
+GLuint carregaTextura(const char* nomeArquivo) {
+	GLuint textura;
 
-	RgbImage theTexMap(filename); // Image with texture
+	RgbImage image(nomeArquivo);
 
-	glGenTextures(1, &textureId); // Make room for our texture
-	glBindTexture(GL_TEXTURE_2D, textureId);	// Tell OpenGL which texture to edit
-	// Map the image to the texture
-	glTexImage2D(GL_TEXTURE_2D,	// Always GL_TEXTURE_2D
-		0,						// 0 for now
-		GL_RGB,					// Format OpenGL uses for image
-		theTexMap.GetNumCols(),	// Width 
-		theTexMap.GetNumRows(),	// Height
-		0,						// The border of the image
-		GL_RGB,					// GL_RGB, because pixels are stored in RGB format
-		GL_UNSIGNED_BYTE,		// GL_UNSIGNED_BYTE, because pixels are stored as unsigned numbers
-		theTexMap.ImageData());	// The actual pixel data
-	return textureId; // Returns the id of the texture
+	glGenTextures(1, &textura);
+	glBindTexture(GL_TEXTURE_2D, textura);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image.GetNumCols(), image.GetNumRows(), 0, GL_RGB, GL_UNSIGNED_BYTE, image.ImageData());
+
+	return textura;
 }
 
 void initRendering(void) {
 	quadSphere = gluNewQuadric();
 	quadCylinder = gluNewQuadric();
-	_amarelo = loadTexture(fAmarelo);
-	_marrom = loadTexture(fMarrom);
-	_metal = loadTexture(fMetal);
-	_olho = loadTexture(fOlho);
-	_verde = loadTexture(fVerde);
+
+	_amarelo = carregaTextura("./amarelo.bmp");
+	_marrom = carregaTextura("./marrom.bmp");
+	_metal = carregaTextura("./metal.bmp");
+	_olho = carregaTextura("./olho.bmp");
+	_verde = carregaTextura("./verde.bmp");
 }
 
-void handleKeypress(unsigned char key, int x, int y) {
+void handleKeypress(unsigned char key, int, int) {
 	switch (key) {
 	case 27: //Escape key
 		exit(0);
-	case 'w': //Increase view angle z axis
-		if (viewAngleZ < 180) viewAngleZ += 3;
-		glutPostRedisplay();
+	case 'w': // Aumenta angulo no eixo z
+		if (anguloVisaoZ < 180) anguloVisaoZ += 3;
 		break;
-	case 's': //Decrease view angle z axis
-		if (viewAngleZ > 0) viewAngleZ -= 3;
-		glutPostRedisplay();
+	case 's': // Diminui angulo no eixo z
+		if (anguloVisaoZ > 0) anguloVisaoZ -= 3;
 		break;
-	case 'd': //Decrease view angle x axis
-		if (viewAngleX > -180) viewAngleX -= 3;
-		glutPostRedisplay();
+	case 'a': // Aumenta angulo no eixo x
+		if (anguloVisaoX < 180) anguloVisaoX += 3;
 		break;
-	case 'a': //Increase view angle x axis
-		if (viewAngleX < 180) viewAngleX += 3;
-		glutPostRedisplay();
+	case 'd': // Diminui angulo no eixo x
+		if (anguloVisaoX > -180) anguloVisaoX -= 3;
 		break;
-	case 't': //Use texture or not
-		textureOn = !textureOn;
-		glutPostRedisplay();
+	case 9: // Liga/Desliga textura
+		texturaLigado = !texturaLigado;
 		break;
 	case '1': //Increase arm angle
-		if (bracoEsquerdo.AngleArmZ <= -90 + 45)
-			bracoEsquerdo.AngleArmZ += 3;
-		glutPostRedisplay();
+		if (bracoEsquerdo.AnguloBracoZ <= -90 + 45) bracoEsquerdo.AnguloBracoZ += 3;
 		break;
 	case '2': //Decrease arm angle
-		if (bracoEsquerdo.AngleArmZ >= -180 + 45)
-			bracoEsquerdo.AngleArmZ -= 3;
-		glutPostRedisplay();
+		if (bracoEsquerdo.AnguloBracoZ >= -180 + 45) bracoEsquerdo.AnguloBracoZ -= 3;
 		break;
 	case '3': //Decrease arm angle
-		if (bracoEsquerdo.AngleArmY <= 90 - 15) {
-			bracoEsquerdo.AngleArmY += 3;
-		}
-		glutPostRedisplay();
+		if (bracoEsquerdo.AnguloBracoY <= 90 - 15) bracoEsquerdo.AnguloBracoY += 3;
 		break;
 	case '4': //Decrease arm angle
-		if (bracoEsquerdo.AngleArmY >= 0) {
-			bracoEsquerdo.AngleArmY -= 3;
-		}
-		glutPostRedisplay();
+		if (bracoEsquerdo.AnguloBracoY >= 0) bracoEsquerdo.AnguloBracoY -= 3;
 		break;
 	case '5': //Increase forearm angle
-		if (bracoEsquerdo.AngleForearm < 90) bracoEsquerdo.AngleForearm += 3;
-		glutPostRedisplay();
+		if (bracoEsquerdo.AnguloAntebraco < 90) bracoEsquerdo.AnguloAntebraco += 3;
 		break;
 	case '6': //Decrease forearm angle
-		if (bracoEsquerdo.AngleForearm > 0) bracoEsquerdo.AngleForearm -= 3;
-		glutPostRedisplay();
+		if (bracoEsquerdo.AnguloAntebraco > 0) bracoEsquerdo.AnguloAntebraco -= 3;
 		break;
 	case '7': //Decrease forearm angle
-		if (bracoEsquerdo.HandSpin > -180) bracoEsquerdo.HandSpin -= 3;
-		glutPostRedisplay();
+		if (bracoEsquerdo.GiroDaMao > -180) bracoEsquerdo.GiroDaMao -= 3;
 		break;
 	case '8': //Decrease forearm angle
-		if (bracoEsquerdo.HandSpin < 180) bracoEsquerdo.HandSpin += 3;
-		glutPostRedisplay();
+		if (bracoEsquerdo.GiroDaMao < 180) bracoEsquerdo.GiroDaMao += 3;
 		break;
 	case '9': //Increase clamp angle y axis
-		if (bracoEsquerdo.AngleClampY < 60) bracoEsquerdo.AngleClampY += 3;
-		glutPostRedisplay();
+		if (bracoEsquerdo.AnguloGarraY < 60) bracoEsquerdo.AnguloGarraY += 3;
 		break;
 	case '0': //Decrease clamp angle y axis
-		if (bracoEsquerdo.AngleClampY > 0) bracoEsquerdo.AngleClampY -= 3;
-		glutPostRedisplay();
+		if (bracoEsquerdo.AnguloGarraY > 0) bracoEsquerdo.AnguloGarraY -= 3;
 		break;
 	case 92: //Increase arm angle
-		if (bracoDireito.AngleArmZ >= 90 - 45)
-			bracoDireito.AngleArmZ -= 3;
-		glutPostRedisplay();
+		if (bracoDireito.AnguloBracoZ >= 90 - 45) bracoDireito.AnguloBracoZ -= 3;
 		break;
 	case 'z': //Decrease arm angle
-		if (bracoDireito.AngleArmZ <= 90 + 45)
-			bracoDireito.AngleArmZ += 3;
-		glutPostRedisplay();
+		if (bracoDireito.AnguloBracoZ <= 90 + 45) bracoDireito.AnguloBracoZ += 3;
 		break;
 	case 'x': //Decrease arm angle
-		if (bracoDireito.AngleArmY <= 90 - 15) {
-			bracoDireito.AngleArmY += 3;
-		}
-		glutPostRedisplay();
+		if (bracoDireito.AnguloBracoY <= 90 - 15) bracoDireito.AnguloBracoY += 3;
 		break;
 	case 'c': //Decrease arm angle
-		if (bracoDireito.AngleArmY >= 0) {
-			bracoDireito.AngleArmY -= 3;
-		}
-		glutPostRedisplay();
+		if (bracoDireito.AnguloBracoY >= 0) bracoDireito.AnguloBracoY -= 3;
 		break;
 	case 'v': //Increase forearm angle
-		if (bracoDireito.AngleForearm < 90) bracoDireito.AngleForearm += 3;
-		glutPostRedisplay();
+		if (bracoDireito.AnguloAntebraco < 90) bracoDireito.AnguloAntebraco += 3;
 		break;
 	case 'b': //Decrease forearm angle
-		if (bracoDireito.AngleForearm > 0) bracoDireito.AngleForearm -= 3;
-		glutPostRedisplay();
+		if (bracoDireito.AnguloAntebraco > 0) bracoDireito.AnguloAntebraco -= 3;
 		break;
 	case 'n': //Decrease forearm angle
-		if (bracoDireito.HandSpin > -180) bracoDireito.HandSpin -= 3;
-		glutPostRedisplay();
+		if (bracoDireito.GiroDaMao > -180) bracoDireito.GiroDaMao -= 3;
 		break;
 	case 'm': //Decrease forearm angle
-		if (bracoDireito.HandSpin < 180) bracoDireito.HandSpin += 3;
-		glutPostRedisplay();
+		if (bracoDireito.GiroDaMao < 180) bracoDireito.GiroDaMao += 3;
 		break;
 	case ',': //Increase clamp angle y axis
-		if (bracoDireito.AngleClampY < 60) bracoDireito.AngleClampY += 3;
-		glutPostRedisplay();
+		if (bracoDireito.AnguloGarraY < 60) bracoDireito.AnguloGarraY += 3;
 		break;
 	case '.': //Decrease clamp angle y axis
-		if (bracoDireito.AngleClampY > 0) bracoDireito.AngleClampY -= 3;
-		glutPostRedisplay();
+		if (bracoDireito.AnguloGarraY > 0) bracoDireito.AnguloGarraY -= 3;
 		break;
 	case 'y': //Increase Leg angle 
 		if (pernaEsquerda.LegArt < 180 + 75) pernaEsquerda.LegArt += 3;
-		glutPostRedisplay();
 		break;
 	case 'u': //Decrease Leg angle
 		if (pernaEsquerda.LegArt > 180) pernaEsquerda.LegArt -= 3;
-		glutPostRedisplay();
 		break;
 	case 'i': //Increase knee angle
 		if (pernaEsquerda.KneeArt < 90) pernaEsquerda.KneeArt += 3;
-		glutPostRedisplay();
 		break;
 	case 'o': //Decrease knee angle
 		if (pernaEsquerda.KneeArt > 0) pernaEsquerda.KneeArt -= 3;
-		glutPostRedisplay();
 		break;
 	case 'h': //Increase Leg angle 
 		if (pernaDireita.LegArt < 180 + 75) pernaDireita.LegArt += 3;
-		glutPostRedisplay();
 		break;
 	case 'j': //Decrease Leg angle
 		if (pernaDireita.LegArt > 180) pernaDireita.LegArt -= 3;
-		glutPostRedisplay();
 		break;
 	case 'k': //Increase knee angle
 		if (pernaDireita.KneeArt < 90) pernaDireita.KneeArt += 3;
-		glutPostRedisplay();
 		break;
 	case 'l': //Decrease knee angle
 		if (pernaDireita.KneeArt > 0) pernaDireita.KneeArt -= 3;
-		glutPostRedisplay();
 		break;
 	case 'q': //Increase head angle
-		if (headArt < 90) headArt += 3;
-		glutPostRedisplay();
+		if (rotacaoCabeca < 90) rotacaoCabeca += 3;
 		break;
 	case 'e': //Decrease head angle
-		if (headArt > -90) headArt -= 3;
-		glutPostRedisplay();
+		if (rotacaoCabeca > -90) rotacaoCabeca -= 3;
 		break;
 	case '=': //
 		if (zoom > 4) zoom -= 2;
-		glutPostRedisplay();
 		break;
 	case '-': //
 		if (zoom < 60) zoom += 2;
-		glutPostRedisplay();
 		break;
+	default:
+		printf("\n%s\n", key);
 	}
+
+	glutPostRedisplay();
 }
 
-void glutInput(int key, int x, int y) {
+void glutInput(int key, int, int) {
 	switch (key) {
 	case GLUT_KEY_UP:
 		if (centroZ < 50) centroZ += 2;
@@ -340,7 +267,7 @@ void handleResize(int w, int h) {
 }
 
 void drawCylinder(float diameter, float lenght, GLuint texture) {
-	if (textureOn) {
+	if (texturaLigado) {
 		glBindTexture(GL_TEXTURE_2D, texture);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -350,11 +277,11 @@ void drawCylinder(float diameter, float lenght, GLuint texture) {
 		gluQuadricTexture(quadCylinder, 0);
 	}
 
-	gluCylinder(quadCylinder, diameter, diameter, lenght, 40.0, lenght * 30.0);
+	gluCylinder(quadCylinder, diameter, diameter, lenght, 10.0f, 10.0f);
 }
 
 void drawCone(float diameter, float lenght, GLuint texture = INFINITE) {
-	if (textureOn) {
+	if (texturaLigado) {
 		if (texture != INFINITE)
 		{
 			glBindTexture(GL_TEXTURE_2D, texture);
@@ -367,11 +294,11 @@ void drawCone(float diameter, float lenght, GLuint texture = INFINITE) {
 		gluQuadricTexture(quadCylinder, 0);
 	}
 
-	gluCylinder(quadCylinder, diameter, 0, lenght, 40.0, lenght * 30.0);
+	gluCylinder(quadCylinder, diameter, 0, lenght, 10.0f, 10.0f);
 }
 
 void drawDisk(float diameterInner, float diameterOuter, GLuint texture) {
-	if (textureOn) {
+	if (texturaLigado) {
 		glBindTexture(GL_TEXTURE_2D, texture);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -381,11 +308,11 @@ void drawDisk(float diameterInner, float diameterOuter, GLuint texture) {
 		gluQuadricTexture(quadCylinder, 0);
 	}
 
-	gluDisk(quadCylinder, diameterInner, diameterOuter, 40.0, 30.0);
+	gluDisk(quadCylinder, diameterInner, diameterOuter, 10.0f, 10.0f);
 }
 
 void drawSphere(float diameter, GLuint texture) {
-	if (textureOn) {
+	if (texturaLigado) {
 		glBindTexture(GL_TEXTURE_2D, texture);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -395,28 +322,25 @@ void drawSphere(float diameter, GLuint texture) {
 		gluQuadricTexture(quadSphere, 0);
 	}
 
-	gluSphere(quadSphere, diameter, 40.0, 40.0);
+	gluSphere(quadSphere, diameter, 10.0f, 10.0f);
 }
 
 void drawPerna(Perna perna) {
-	glTranslatef(0.0f, centroY + perna.DistZ, centroZ + heightBase + sizeKnee + (sphereDiameter / 2.5f) + sizeLeg);
-	drawSphere(1.5f * sphereDiameter, _amarelo);
+	glTranslatef(0.0f, centroY + perna.DistZ, centroZ + alturaBase + tamanhoJoelho + (diametroEsfera / 2.5f) + tamanhoPerna);
+	drawSphere(1.5f * diametroEsfera, _amarelo);
 
 	glRotatef(perna.LegArt, 0.0f, -1.0f, 0.0f);
-	drawCylinder(1.5f * diameterCylinder, sizeLeg, _marrom);
+	drawCylinder(1.5f * diametroCilindro, tamanhoPerna, _marrom);
 
-	glTranslatef(0.0f, 0.0f, sizeLeg);
-	glTranslatef(0.0f, 0.0f, (sphereDiameter / 5));
-	drawSphere(1.5f * sphereDiameter, _amarelo);
+	glTranslatef(0.0f, 0.0f, tamanhoPerna);
+	glTranslatef(0.0f, 0.0f, (diametroEsfera / 5));
+	drawSphere(1.5f * diametroEsfera, _amarelo);
 
 	glRotatef(perna.KneeArt, 0.0f, 1.0f, 0.0f);
-	drawCylinder(1.5f * diameterCylinder, sizeKnee, _marrom);
+	drawCylinder(1.5f * diametroCilindro, tamanhoJoelho, _marrom);
 
-	glTranslatef(0.0f, 0.0f, (sizeKnee + sphereDiameter / 5));
-	drawDisk(0, diameterBase, _metal);
-	drawCylinder(diameterBase, heightBase, _metal);
-	glTranslatef(0.0f, 0.0f, heightBase);
-	drawDisk(0, diameterBase, _metal);
+	glTranslatef(0.0f, 0.0f, tamanhoJoelho + diametroEsfera);
+	drawSphere(2, _metal);
 
 	glPopMatrix();
 	glPushMatrix();
@@ -424,66 +348,66 @@ void drawPerna(Perna perna) {
 
 void drawBraco(Braco braco) {
 	glColor3f(1.0f, 1.0f, 1.0f);
-	glTranslatef(0.0f, braco.DiameterTorso, -torsoHeight / 3);
-	drawSphere(2 * sphereDiameter, _amarelo);
+	glTranslatef(0.0f, braco.DiameterTorso, -alturaTorso / 3);
+	drawSphere(2 * diametroEsfera, _amarelo);
 
-	glRotatef(braco.AngleArmZ, 1.0f, 0.0f, 0.0f);
-	glRotatef(braco.AngleArmY, 0.0f, 1.0f, 0.0f);
+	glRotatef(braco.AnguloBracoZ, 1.0f, 0.0f, 0.0f);
+	glRotatef(braco.AnguloBracoY, 0.0f, 1.0f, 0.0f);
 
-	drawCylinder(diameterCylinder, armSize, _verde);
+	drawCylinder(diametroCilindro, tamanhoBraco, _verde);
 
-	glTranslatef(0.0f, 0.0f, armSize + sphereDiameter / 5);
-	glRotatef(braco.AngleForearm, 0.0f, 1.0f, 0.0f);
+	glTranslatef(0.0f, 0.0f, tamanhoBraco + diametroEsfera / 5);
+	glRotatef(braco.AnguloAntebraco, 0.0f, 1.0f, 0.0f);
 
-	drawSphere(sphereDiameter, _amarelo);
-	glTranslatef(0.0f, 0.0f, sphereDiameter / 5);
-	drawCylinder(diameterCylinder, sizeForearm, _metal);
+	drawSphere(diametroEsfera, _amarelo);
+	glTranslatef(0.0f, 0.0f, diametroEsfera / 5);
+	drawCylinder(diametroCilindro, tamanhoAntebraco, _metal);
 
-	glTranslatef(0.0f, 0.0f, sizeForearm + sphereDiameter / 5);
-	glRotatef(braco.AngleClampZ, 0.0f, 0.0f, 1.0f);
+	glTranslatef(0.0f, 0.0f, tamanhoAntebraco + diametroEsfera / 5);
+	glRotatef(braco.AnguloGarraZ, 0.0f, 0.0f, 1.0f);
 
-	drawSphere(sphereDiameter, _amarelo);
-	glTranslatef(0.0f, 0.0f, sphereDiameter / 2);
-	glRotatef(braco.HandSpin, 0.0f, 0.0f, 1.0f);
+	drawSphere(diametroEsfera, _amarelo);
+	glTranslatef(0.0f, 0.0f, diametroEsfera / 2);
+	glRotatef(braco.GiroDaMao, 0.0f, 0.0f, 1.0f);
 
 	glPushMatrix();
 
-	glRotatef(braco.AngleClampY + 60, 0.0f, 1.0f, 0.0f);
+	glRotatef(braco.AnguloGarraY + 60, 0.0f, 1.0f, 0.0f);
 
-	drawCylinder(diameterCylinder / 3, sizeClampPart, _amarelo);
-	glTranslatef(0.0f, 0.0f, sizeClampPart + sphereDiameter / 15);
-	drawSphere(sphereDiameter / 3, _amarelo);
+	drawCylinder(diametroCilindro / 3, tamanhoParteDaGarra, _amarelo);
+	glTranslatef(0.0f, 0.0f, tamanhoParteDaGarra + diametroEsfera / 15);
+	drawSphere(diametroEsfera / 3, _amarelo);
 
-	glTranslatef(0.0f, 0.0f, sphereDiameter / 15);
+	glTranslatef(0.0f, 0.0f, diametroEsfera / 15);
 	glRotatef(-60, 0.0f, 1.0f, 0.0f);
 
-	drawCylinder(diameterCylinder / 3, sizeClampPart, _amarelo);
-	glTranslatef(0.0f, 0.0f, sizeClampPart + sphereDiameter / 15);
-	drawSphere(sphereDiameter / 3, _amarelo);
+	drawCylinder(diametroCilindro / 3, tamanhoParteDaGarra, _amarelo);
+	glTranslatef(0.0f, 0.0f, tamanhoParteDaGarra + diametroEsfera / 15);
+	drawSphere(diametroEsfera / 3, _amarelo);
 
-	glTranslatef(0.0f, 0.0f, sphereDiameter / 15);
+	glTranslatef(0.0f, 0.0f, diametroEsfera / 15);
 	glRotatef(-60, 0.0f, 1.0f, 0.0f);
-	drawCone(diameterCylinder / 3, sizeClampPart, _amarelo);
+	drawCone(diametroCilindro / 3, tamanhoParteDaGarra, _amarelo);
 
 	glPopMatrix();
 	glPushMatrix();
 
-	glRotatef(-braco.AngleClampY - 60, 0.0f, 1.0f, 0.0f);
+	glRotatef(-braco.AnguloGarraY - 60, 0.0f, 1.0f, 0.0f);
 
-	drawCylinder(diameterCylinder / 3, sizeClampPart, _amarelo);
-	glTranslatef(0.0f, 0.0f, sizeClampPart + sphereDiameter / 15);
-	drawSphere(sphereDiameter / 3, _amarelo);
+	drawCylinder(diametroCilindro / 3, tamanhoParteDaGarra, _amarelo);
+	glTranslatef(0.0f, 0.0f, tamanhoParteDaGarra + diametroEsfera / 15);
+	drawSphere(diametroEsfera / 3, _amarelo);
 
-	glTranslatef(0.0f, 0.0f, sphereDiameter / 15);
+	glTranslatef(0.0f, 0.0f, diametroEsfera / 15);
 	glRotatef(60, 0.0f, 1.0f, 0.0f);
 
-	drawCylinder(diameterCylinder / 3, sizeClampPart, _amarelo);
-	glTranslatef(0.0f, 0.0f, sizeClampPart + sphereDiameter / 15);
-	drawSphere(sphereDiameter / 3, _amarelo);
+	drawCylinder(diametroCilindro / 3, tamanhoParteDaGarra, _amarelo);
+	glTranslatef(0.0f, 0.0f, tamanhoParteDaGarra + diametroEsfera / 15);
+	drawSphere(diametroEsfera / 3, _amarelo);
 
-	glTranslatef(0.0f, 0.0f, sphereDiameter / 15);
+	glTranslatef(0.0f, 0.0f, diametroEsfera / 15);
 	glRotatef(60, 0.0f, 1.0f, 0.0f);
-	drawCone(diameterCylinder / 3, sizeClampPart, _amarelo);
+	drawCone(diametroCilindro / 3, tamanhoParteDaGarra, _amarelo);
 
 	glPopMatrix();
 	glPopMatrix();
@@ -501,18 +425,18 @@ void drawScene(void) {
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	eyeX = eyeDistance * cosf(viewAngleZ * PI / 180.0f) * cosf(viewAngleX * PI / 180.0f);
-	eyeY = eyeDistance * cosf(viewAngleZ * PI / 180.0f) * sinf(viewAngleX * PI / 180.0f);
-	eyeZ = eyeDistance * sinf(viewAngleZ * PI / 180.0f);
+	olhoX = distanciaOlho * cosf(anguloVisaoZ * PI / 180.0f) * cosf(anguloVisaoX * PI / 180.0f);
+	olhoY = distanciaOlho * cosf(anguloVisaoZ * PI / 180.0f) * sinf(anguloVisaoX * PI / 180.0f);
+	olhoZ = distanciaOlho * sinf(anguloVisaoZ * PI / 180.0f);
 
-	if (viewAngleZ < 90) {
-		gluLookAt(eyeX, eyeY, eyeZ, 0.0, 0.0, 0.0, 0.0, 0.0, 1);
+	if (anguloVisaoZ < 90) {
+		gluLookAt(olhoX, olhoY, olhoZ, 0.0, 0.0, 0.0, 0.0, 0.0, 1);
 	}
 	else {
-		gluLookAt(eyeX, eyeY, eyeZ, 0.0, 0.0, 0.0, 0.0, 0.0, -1);
+		gluLookAt(olhoX, olhoY, olhoZ, 0.0, 0.0, 0.0, 0.0, 0.0, -1);
 	}
 
-	glLightfv(GL_LIGHT0, GL_POSITION, lightposition);
+	glLightfv(GL_LIGHT0, GL_POSITION, posicaoLuz);
 
 	// drawing color
 	glColor3f(1.0f, 1.0f, 1.0f);
@@ -524,26 +448,26 @@ void drawScene(void) {
 	drawPerna(pernaDireita);
 
 	//Tronco
-	glTranslatef(0.0f, centroY, centroZ + sizeLeg + sizeKnee + heightBase + sphereDiameter / 2);
-	drawDisk(0, diameterTorso, _metal);
+	glTranslatef(0.0f, centroY, centroZ + tamanhoPerna + tamanhoJoelho + alturaBase + diametroEsfera / 2);
+	drawDisk(0, diametroTorso, _metal);
 	glRotatef(90, 0.0f, 0.0f, 1.0f);
-	drawCylinder(diameterTorso, torsoHeight, _verde);
+	drawCylinder(diametroTorso, alturaTorso, _verde);
 	glRotatef(-90, 0.0f, 0.0f, 1.0f);
-	glTranslatef(0.0f, 0.0f, torsoHeight);
-	drawDisk(diameterCylinder, diameterTorso, _metal);
+	glTranslatef(0.0f, 0.0f, alturaTorso);
+	drawDisk(diametroCilindro, diametroTorso, _metal);
 
 	glPushMatrix();
 
-	drawSphere(diameterTorso, _metal);
+	drawSphere(diametroTorso, _metal);
 
 	//Olhos
 	glPushMatrix();
-	glTranslatef(-diameterTorso / 2.2, diameterTorso / 3, -diameterEye / 2);
+	glTranslatef(-diametroTorso / 2.2, diametroTorso / 3, -diametroOlho / 2);
 	glRotatef(-86.0f, 0.0f, 1.0f, 0.0f);
 	glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
-	drawSphere(diameterEye, _olho);
-	glTranslatef(0.0f, 0.0f, diameterTorso / 1.5);
-	drawSphere(diameterEye, _olho);
+	drawSphere(diametroOlho, _olho);
+	glTranslatef(0.0f, 0.0f, diametroTorso / 1.5);
+	drawSphere(diametroOlho, _olho);
 
 	////Nariz
 	//glPopMatrix();
@@ -580,10 +504,10 @@ int main(int argc, char** argv) {
 	pernaEsquerda.DistZ = 4.0f;
 	pernaDireita.DistZ = -4.0f;
 
-	bracoEsquerdo.AngleArmZ = -90.0f;
+	bracoEsquerdo.AnguloBracoZ = -90.0f;
 	bracoEsquerdo.DiameterTorso = 5.0f;
 
-	bracoDireito.AngleArmZ = 90.0f;
+	bracoDireito.AnguloBracoZ = 90.0f;
 	bracoDireito.DiameterTorso = -5.0f;
 
 	glutInit(&argc, argv);
